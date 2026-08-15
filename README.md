@@ -22,27 +22,27 @@ SIEM (HIGH severity alerts)
               (closed early, investigation skipped)
 ```
 
-| Node | What it does | Tools called |
-| --- | --- | --- |
-| **Supervisor** | Pure routing logic; one LLM call to write the final verdict | none |
-| **Triage** | Classifies `false_positive` vs `needs_investigation` | `investigate_ip` |
-| **Investigation** | Deep analysis of scope / blast radius / correlated alerts | `investigate_ip`, `search_elastic` |
+| Node              | What it does                                                | Tools called                       |
+| ----------------- | ----------------------------------------------------------- | ---------------------------------- |
+| **Supervisor**    | Pure routing logic; one LLM call to write the final verdict | none                               |
+| **Triage**        | Classifies `false_positive` vs `needs_investigation`        | `investigate_ip`                   |
+| **Investigation** | Deep analysis of scope / blast radius / correlated alerts   | `investigate_ip`, `search_elastic` |
 
 Every node is a plain Python function with fixed tool calls — no nested ReAct
 agents — so traces stay readable in LangSmith.
 
 ## Repository layout
 
-| File | Purpose |
-| --- | --- |
-| [agent.py](soc-agent/agent.py) | `build_soc_graph()` — the LangGraph pipeline + all prompts (incl. the `TRIAGE_PRECISE_PROMPT` / `TRIAGE_CAUTIOUS_PROMPT` experiment variants) |
-| [tools.py](soc-agent/tools.py) | Simulated threat intel, geo/ASN enrichment, and Elasticsearch lookups |
-| [feed_alerts.py](soc-agent/feed_alerts.py) | 20 labeled alerts (2 TP / 16 FP / 2 ambiguous) used by `run_agent.py` |
-| [run_agent.py](soc-agent/run_agent.py) | Runs the pipeline over the alert feed and prints verdicts |
-| [dataset.py](soc-agent/dataset.py) | Pushes the 10-example `soc-triage-benchmark` dataset to LangSmith |
-| [experiment.py](soc-agent/experiment.py) | Runs the prompt-strategy experiment matrix against that dataset |
-| [evaluator.py](soc-agent/evaluator.py) | LLM-as-judge evaluator + annotation-queue flagging (imported by `experiment.py`) |
-| [demo/agent_graph.md](soc-agent/demo/agent_graph.md) | Mermaid architecture diagrams |
+| File                                                 | Purpose                                                                                                                                       |
+| ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| [agent.py](soc-agent/agent.py)                       | `build_soc_graph()` — the LangGraph pipeline + all prompts (incl. the `TRIAGE_PRECISE_PROMPT` / `TRIAGE_CAUTIOUS_PROMPT` experiment variants) |
+| [tools.py](soc-agent/tools.py)                       | Simulated threat intel, geo/ASN enrichment, and Elasticsearch lookups                                                                         |
+| [feed_alerts.py](soc-agent/feed_alerts.py)           | 20 labeled alerts (2 TP / 16 FP / 2 ambiguous) used by `run_agent.py`                                                                         |
+| [run_agent.py](soc-agent/run_agent.py)               | Runs the pipeline over the alert feed and prints verdicts                                                                                     |
+| [dataset.py](soc-agent/dataset.py)                   | Pushes the 10-example `soc-triage-benchmark` dataset to LangSmith                                                                             |
+| [experiment.py](soc-agent/experiment.py)             | Runs the prompt-strategy experiment matrix against that dataset                                                                               |
+| [evaluator.py](soc-agent/evaluator.py)               | LLM-as-judge evaluator + annotation-queue flagging (imported by `experiment.py`)                                                              |
+| [demo/agent_graph.md](soc-agent/demo/agent_graph.md) | Mermaid architecture diagrams                                                                                                                 |
 
 ---
 
@@ -69,18 +69,18 @@ cp .env.example .env
 LANGSMITH_TRACING=true
 LANGSMITH_ENDPOINT=https://api.smith.langchain.com
 LANGSMITH_API_KEY=lsv2_pt_xxxxxxxxxxxxxxxxxxxxxxxx
-LANGSMITH_PROJECT=soc-analyst-agent
+LANGSMITH_PROJECT=soc-agent
 
 OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-| Variable | Required | How to fill it |
-| --- | --- | --- |
-| `LANGSMITH_TRACING` | yes | `true` to send traces, `false` to run the pipeline with no tracing |
-| `LANGSMITH_ENDPOINT` | yes | `https://api.smith.langchain.com` for the US region; use `https://eu.api.smith.langchain.com` if your LangSmith workspace is in the EU |
-| `LANGSMITH_API_KEY` | yes for `dataset.py` / `experiment.py` | [smith.langchain.com](https://smith.langchain.com) → Settings → API Keys → **Create API Key**. Starts with `lsv2_pt_` |
-| `LANGSMITH_PROJECT` | yes | Any project name — it is created automatically on the first trace. Use `soc-analyst-agent` to match the links printed by `run_agent.py` |
-| `OPENAI_API_KEY` | yes | [platform.openai.com](https://platform.openai.com/api-keys) → **Create new secret key**. Needs access to `gpt-4o` (pipeline) and `gpt-4o-mini` (LLM judge) |
+| Variable             | Required                               | How to fill it                                                                                                                                             |
+| -------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `LANGSMITH_TRACING`  | yes                                    | `true` to send traces, `false` to run the pipeline with no tracing                                                                                         |
+| `LANGSMITH_ENDPOINT` | yes                                    | `https://api.smith.langchain.com` for the US region; use `https://eu.api.smith.langchain.com` if your LangSmith workspace is in the EU                     |
+| `LANGSMITH_API_KEY`  | yes for `dataset.py` / `experiment.py` | [smith.langchain.com](https://smith.langchain.com) → Settings → API Keys → **Create API Key**. Starts with `lsv2_pt_`                                      |
+| `LANGSMITH_PROJECT`  | yes                                    | Any project name — it is created automatically on the first trace. Use `soc-analyst-agent` to match the links printed by `run_agent.py`                    |
+| `OPENAI_API_KEY`     | yes                                    | [platform.openai.com](https://platform.openai.com/api-keys) → **Create new secret key**. Needs access to `gpt-4o` (pipeline) and `gpt-4o-mini` (LLM judge) |
 
 Notes:
 
@@ -159,10 +159,10 @@ python experiment.py
 Runs the full pipeline over every dataset example twice, once per triage prompt
 strategy:
 
-| Experiment | Triage prompt |
-| --- | --- |
-| `pipeline_precise` | `TRIAGE_PRECISE_PROMPT` — closes FPs when evidence is clear |
-| `pipeline_cautious` | `TRIAGE_CAUTIOUS_PROMPT` — escalates on any doubt |
+| Experiment          | Triage prompt                                               |
+| ------------------- | ----------------------------------------------------------- |
+| `pipeline_precise`  | `TRIAGE_PRECISE_PROMPT` — closes FPs when evidence is clear |
+| `pipeline_cautious` | `TRIAGE_CAUTIOUS_PROMPT` — escalates on any doubt           |
 
 Everything else in the pipeline is held constant, so the score difference is
 attributable to the triage strategy alone.
